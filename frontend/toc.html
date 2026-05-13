@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salon Nàng Thơ - Hệ Thống Quản Lý</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Quicksand:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="toc.css">
+</head>
+
+<body>
+
+    <!-- MÀN HÌNH ĐĂNG NHẬP & ĐĂNG KÝ -->
+    <section id="secAuth">
+        <div id="auth-container">
+            <!-- Form Đăng Nhập -->
+            <div class="auth-box" id="login-box">
+                <div class="logo-circle">🌸</div>
+                <h2>Nàng Thơ Salon</h2>
+                <form id="frmLogin">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="inpUsername" placeholder="Tên đăng nhập">
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="inpPassword" placeholder="Mật khẩu">
+                    </div>
+                    <button type="button" id="btnLoginSubmit" class="btn-pink">Đăng Nhập</button>
+                    <p class="toggle-text">Chưa có tài khoản? <a href="#" onclick="toggleAuth()">Đăng ký ngay</a></p>
+                    <p id="lblLoginError" class="error-msg"></p>
+                </form>
+            </div>
+
+            <!-- Form Đăng Ký -->
+            <div class="auth-box hidden" id="register-box">
+                <div class="logo-circle">✨</div>
+                <h2>Đăng Ký Thành Viên</h2>
+                <form id="frmRegister">
+                    <div class="input-group">
+                        <i class="fas fa-user-tag"></i>
+                        <select id="reg-role" class="styled-select">
+                            <option value="CUSTOMER">Khách Hàng</option>
+                            <option value="STYLIST">Thợ (Stylist)</option>
+                            <option value="MANAGER">Quản Lý</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="reg-user" placeholder="Tên đăng nhập mới">
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-phone"></i>
+                        <input type="text" id="reg-phone" placeholder="Số điện thoại">
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="reg-pass" placeholder="Mật khẩu">
+                    </div>
+                    <button type="button" class="btn-pink" onclick="handleRegister()">Tạo Tài Khoản</button>
+                    <p class="toggle-text">Đã có tài khoản? <a href="#" onclick="toggleAuth()">Quay lại Đăng nhập</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- GIAO DIỆN CHÍNH SAU KHI ĐĂNG NHẬP -->
+    <div id="system-layout" class="hidden">
+        <aside class="sidebar">
+            <div class="logo">🌸 Nàng Thơ</div>
+            <nav id="sidebar-nav">
+                <a href="#" class="nav-link" id="m-booking" onclick="nav('booking')"><i class="fas fa-calendar-alt"></i>
+                    Lịch Hẹn</a>
+                <a href="#" class="nav-link" id="m-pos" onclick="nav('pos')"><i class="fas fa-cash-register"></i> Tính
+                    Tiền</a>
+                <a href="#" class="nav-link" id="m-inventory" onclick="nav('inventory')"><i class="fas fa-boxes"></i>
+                    Kho Hàng</a>
+                <a href="#" class="nav-link" id="m-tax" onclick="nav('tax')"><i class="fas fa-chart-pie"></i> Báo
+                    Cáo</a>
+            </nav>
+            <button class="btn-logout" onclick="location.reload()">
+                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+            </button>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <h1 id="v-title">Dashboard</h1>
+                <div id="u-display" class="user-badge"></div>
+            </header>
+
+            <!-- VIEW: Đặt Lịch -->
+            <div id="view-booking" class="view">
+                <div class="card">
+                    <h3><i class="fas fa-edit"></i> Đặt lịch mới</h3>
+                    <div class="grid-3 mt-15">
+                        <input type="text" id="bk-name" placeholder="Tên khách hàng">
+                        <input type="text" id="bk-phone" placeholder="SĐT">
+                        <input type="time" id="bk-time" value="09:00">
+                    </div>
+                    <button class="btn-pink mt-15" onclick="addBooking()">Xác nhận lịch</button>
+                </div>
+                <div class="card">
+                    <h3>Danh sách lịch trình</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Giờ</th>
+                                <th>Khách hàng</th>
+                                <th>SĐT</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="schedule-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VIEW: POS -->
+            <div id="view-pos" class="view hidden">
+                <div class="card">
+                    <h3>Thanh toán hóa đơn</h3>
+                    <div class="flex-gap-10 mt-15">
+                        <input id="pos-amount" type="number" placeholder="Số tiền (VNĐ)">
+                        <select id="pos-staff">
+                            <option value="NV01">Stylist Anh Tuấn</option>
+                            <option value="NV02">Stylist Lan Ngọc</option>
+                        </select>
+                    </div>
+                    <button class="btn-pink mt-15" onclick="saveInvoice()">Lưu Doanh Thu</button>
+                </div>
+            </div>
+
+            <!-- VIEW: Báo Cáo (Quản lý) -->
+            <div id="view-tax" class="view hidden">
+                <div class="grid-3">
+                    <div class="card stat-card">
+                        <small>Tổng Doanh Thu</small>
+                        <h2 id="report-revenue">0đ</h2>
+                    </div>
+                    <div class="card stat-card">
+                        <small>Tiền Thợ (50%)</small>
+                        <h2 id="report-staff" style="color:#2ecc71">0đ</h2>
+                    </div>
+                    <div class="card stat-card">
+                        <small>Thuế (3%)</small>
+                        <h2 id="report-tax" style="color:#e74c3c">0đ</h2>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="toc.js"></script>
+</body>
+
+</html>

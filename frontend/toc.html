@@ -276,14 +276,32 @@
             <div id="view-pos" class="view hidden">
                 <div class="card">
                     <h3>Xuất hóa đơn thanh toán</h3>
-                    <p style="font-size:13px; color:#888;">Hoa hồng thợ: 50% | Thuế: 3% tính trên tổng doanh thu</p>
-                    <input type="number" id="p-amount" placeholder="Số tiền thanh toán (VNĐ)" style="margin-top:15px;">
-                    <select id="p-stylist-list" style="margin-top:10px;"></select>
-                    <button class="btn-pink" onclick="saveInvoice()" style="margin-top:10px;">Thanh toán & Lưu Doanh
-                        Thu</button>
+                    <p style="font-size:13px; color:#888;">Hoa hồng thợ: 50% | Thuế: 3%</p>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px;">
+                        <!-- Chọn khách hàng từ danh sách lịch hẹn -->
+                        <select id="p-client-list">
+                            <option value="">-- Chọn khách hàng từ lịch --</option>
+                        </select>
+                        <!-- Chọn thợ -->
+                        <select id="p-stylist-list"></select>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+                        <input type="number" id="p-amount" placeholder="Số tiền (VNĐ)">
+                        <!-- Phương thức thanh toán -->
+                        <select id="p-method">
+                            <option value="Tiền mặt">Tiền mặt 💵</option>
+                            <option value="Chuyển khoản">Chuyển khoản 📱</option>
+                            <option value="Thẻ">Quẹt thẻ 💳</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-pink" onclick="saveInvoice()" style="margin-top:15px;">
+                        Xác nhận Thanh toán & Trừ lịch ✨
+                    </button>
                 </div>
             </div>
-
             <!-- INVENTORY VIEW (ADMIN ONLY) -->
             <div id="view-inventory" class="view hidden">
                 <div id="stock-alert-box" class="hidden"></div>
@@ -413,7 +431,13 @@
             document.getElementById('view-' + id).classList.remove('hidden');
             document.getElementById('m-' + id).classList.add('active');
             document.getElementById('v-title').innerText = document.getElementById('m-' + id).innerText;
-
+            if (id === 'pos') {
+                let db = getDB();
+                const pClient = document.getElementById('p-client-list');
+                // Lấy danh sách khách từ lịch hẹn đổ vào ô chọn của POS
+                pClient.innerHTML = '<option value="">-- Chọn khách hàng từ lịch --</option>' +
+                    db.bookings.map((b, index) => `<option value="${index}">${b.time} - ${b.client}</option>`).join('');
+            }
             if (id === 'booking') renderBookings();
             if (id === 'inventory') renderStockTable();
             if (id === 'personal') renderMyMoney();
@@ -447,15 +471,37 @@
 
         // FIX: CỘNG DỒN DOANH THU CHUẨN
         function saveInvoice() {
-            const price = parseInt(document.getElementById('p-amount').value);
-            const sName = document.getElementById('p-stylist-list').value;
-            if (!price || !sName) return alert("Nhập đủ tiền và chọn thợ!");
+            const amount = parseInt(document.getElementById('p-amount').value);
+            const stylist = document.getElementById('p-stylist-list').value;
+            const clientIdx = document.getElementById('p-client-list').value; // Đây là index của lịch hẹn
+            const method = document.getElementById('p-method').value;
+
+            if (!amount || !stylist || clientIdx === "") {
+                return alert("Vui lòng chọn Khách hàng, Thợ và nhập Số tiền!");
+            }
+
             let db = getDB();
-            db.invoices.push({ price, stylist: sName, date: new Date().toLocaleDateString() });
+            const clientName = db.bookings[clientIdx].client;
+
+            // 1. Lưu vào danh sách hóa đơn (có thêm phương thức và tên khách)
+            db.invoices.push({
+                price: amount,
+                stylist: stylist,
+                client: clientName,
+                method: method,
+                date: new Date().toLocaleString()
+            });
+
+            // 2. XÓA KHÁCH NÀY KHỎI LỊCH HẸN
+            db.bookings.splice(clientIdx, 1);
+
+            // 3. Lưu DB và thông báo
             saveDB(db);
-            alert("Thanh toán thành công! Doanh thu đã được cộng.");
+            alert(`Đã thanh toán ${amount.toLocaleString()}đ cho khách ${clientName} qua ${method}!`);
+
+            // 4. Reset form và cập nhật lại dropdown khách hàng
             document.getElementById('p-amount').value = "";
-            renderTaxReports(); // Cập nhật số liệu ngay
+            nav('pos'); // Gọi lại hàm nav để refresh danh sách chọn khách
         }
 
         function updateStock() {

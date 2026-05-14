@@ -1,2 +1,2 @@
 # Nhom16_final_project
-Đồ án cuối kì nhóm 16
+Đồ án cuối kì nhóm 16 môn Quản lý dự án
